@@ -1,0 +1,171 @@
+
+
+    
+
+
+<!-- 继承父模板 -->
+{{extend './layout/main.html'}}
+<!-- 填坑 -->
+
+ {{block 'container'}} 
+
+    <style type="text/css">
+         #pwd-level div {
+        height: 30px;
+        width: 30px;
+        display: inline-block;
+        float: left;
+    }
+    
+    #pwd-level span {
+        display: inline-block;
+        float: left;
+    }
+    </style>
+    <link href="/public/css/register.css" rel="stylesheet" type="text/css" />
+
+
+    <div class="aw-register-box">
+        <div class="mod-head">
+            <a href="/"></a>
+            <h1>注册新用户</h1>
+        </div>
+        <div class="mod-body">
+            <form action="" class="aw-register-form" method="post" id="register_form">
+                <ul>
+                    <li class="alert alert-danger hide error_message text-left">
+                        <i class="icon icon-delete"></i> <em></em>
+                    </li>
+                    <li>
+                        <input class="aw-register-name form-control" type="text" name="username" placeholder="用户名" value="" id="username" />
+                    </li>
+                    <li>
+                        <input class="aw-register-email form-control" type="text" placeholder="邮箱" name="email" value="" />
+                    </li>
+                    <li>
+                        <input class="aw-register-pwd form-control" type="password" name="password" placeholder="密码" id="password"/>
+                    </li>
+                    <div id='pwd-level'>
+                        <span>密码强度:</span>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                    </div>
+                    <hr/>
+                    <li class="aw-register-verify">
+                        <img class="pull-right" width="120" src="/user/get-pic"
+                            onclick="this.src='/user/get-pic?'+Date.now()">
+                        <input type="text" class="form-control" name="v_code" placeholder="验证码" />
+                    </li>
+                    <li class="last">
+                        <label>
+                            <input type="checkbox" checked="checked" value="agree" /> 我同意</label> <a href="javascript:;" class="aw-agreement-btn">用户协议</a>
+                        <a href="/user/login" class="pull-right">已有账号?</a>
+                        <div class="aw-regiter-agreement hide">
+                            <div class="aw-register-agreement-txt" id="register_agreement"></div>
+                        </div>
+                    </li>
+                    <li class="clearfix">
+                        <button type="submit" class="btn btn-large btn-blue btn-block">
+                            注册
+                        </button>
+                    </li>
+                </ul>
+            </form>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        //判断用户名是否可用
+        var username = document.getElementById('username');
+        username.addEventListener('input',function(e){
+            var timer;
+            return function(e){
+                clearTimeout(timer);
+                function checkUsername(value){
+                    $.ajax({
+                        type:'post',
+                        url:'/user/check-username',
+                        data:'username='+value,
+                        dataType:'json',
+                        success:function(res){
+                            if(res.code === '001'){
+                                alert(res.msg);
+                            }else{
+                                alert(res.msg);
+                            }
+                        }
+                    });
+                }
+
+                var value = e.target.value;
+                timer = setTimeout(function(){
+                    checkUsername(value);  
+                },2000);
+            }
+        }());
+
+        //检查密码等级
+        function checkPwd(value){
+            var tempLevel = 0;
+            var regex1 = /[0-9]/;// 数字
+            var regex2 = /[A-Za-z]/; //字符
+            var regex3 = /\W/; // 非字符（特殊符号）
+            if(regex1.test(value)) tempLevel++;
+            if(regex2.test(value)) tempLevel++;
+            if(regex3.test(value)) tempLevel++;
+
+            return tempLevel;
+        }
+
+        //修改密码强度色块
+        function changeColor(level){
+            var divs = $('#pwd-level').find('div');
+            //重置色块
+            for(let i=0;i<divs.length;i++){
+                divs[i].style.backgroundColor = '';
+            }
+            var colors = ['skyblue','yellowgreen','hotpink'];
+            for(let i=0;i<level;i++){
+                divs[i].style.backgroundColor= colors[i];
+            }
+
+        }
+
+        //判断密码强度
+        var password = document.getElementById('password');
+        password.addEventListener('input',function(e){
+            var value = e.target.value;
+
+            var level = checkPwd(value);
+
+            changeColor(level);
+
+        });
+    
+        var form = document.getElementById('register_form');
+        form.addEventListener('submit',function(e){
+            e.preventDefault();
+
+            var formData = $(this).serialize();
+
+            $.ajax({
+                type:'post',
+                url:'/user/do-register',
+                data:formData,
+                dataType:'json',
+                success:function(res){
+                    if(res.code === '001'){
+                        var goLogin = confirm('注册成功，去登录？');
+                        if(goLogin){
+                            window.location = '/user/login';
+                        }
+                    }else{
+                        alert(res.msg);
+                    }
+                }
+            });
+        });
+    
+    </script>
+{{/block}}
