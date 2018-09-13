@@ -33,17 +33,37 @@ app.use(require('koa-static')(path.resolve('./public')))
 const session = require('koa-session');
 //signed为true的时候，根据这个key来做签名，保证cookie不被修改
 app.keys = ['some secret hurr'];   
+
+
 //将session对应的数据保存在服务器内存中
+// let store = {
+//     storage:{},
+//     set:function(key,session){
+//         this.storage[key]=session;
+//     },
+//     get:function(key){
+//         return this.storage[key];
+//     },
+//     destroy:function(key){
+//         delete this.storage[key];
+//     }
+// }
+
+var Redis = require('ioredis');
+var redis = new Redis();
 let store = {
-    storage:{},
     set:function(key,session){
-        this.storage[key]=session;
+        redis.set(key,JSON.stringify(session));
     },
-    get:function(key){
-        return this.storage[key];
+    get: async function(key){
+        let obj = await redis.get(key);
+        obj = JSON.parse(obj);
+        //console.log("==="+obj);
+        
+        return obj;
     },
     destroy:function(key){
-        delete this.storage[key];
+        redis.del(key);
     }
 }
 
@@ -93,7 +113,7 @@ app.use(musicRouter.routes());
 app.use(userRouter.allowedMethods());
 
 
-app.listen(8080,(err)=>{
+app.listen(port,(err)=>{
     if(err){
         console.log('服务器启动失败');
     }

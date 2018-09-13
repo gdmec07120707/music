@@ -21,6 +21,7 @@
 
     #lrc {
         margin-top: 130px;
+        width: 300px;
         position: absolute;
         text-align: center;
         padding-top: 60px;
@@ -36,7 +37,7 @@
         <div class="page-header">
             <h1>首页--<small>我的音乐</small></h1>
         </div>
-        <a href="/music/addMusic" class="btn btn-success">添加音乐</a>
+        <a href="/music/add-music" class="btn btn-success">添加音乐</a>
     </div>
     <div class="container">
        <div class="row" style="display: flex;">
@@ -59,7 +60,9 @@
                                 <td>{{$value.time}}</td>
                                 <td><a href="">编辑</a></td>
                                 <td><a class="del" href="">删除</a></td>
-                                <td><span style="cursor:pointer" src="" class="glyphicon glyphicon-play-circle ply"></span></td>
+                                <td><span style="cursor:pointer" src="" class="glyphicon glyphicon-play-circle ply"
+                                    file="{{$value.file}}" filelrc="{{$value.filelrc}}"
+                                    ></span></td>
                             </tr>
                         {{/each}}
                         
@@ -78,5 +81,83 @@
             </div>
         </div>
     </div>
+
+    <script type="text/javascript">
+        //歌词解析
+        function parseObjFromText(text){
+            var tmpObj = {};
+            // /\[\d{2}\:\d{2}\.\d{2}\].*/  完成匹配
+            // exec 结合分组，获取分组匹配的数据
+            // /\[(\d{2})\:(\d{2})\.(\d{2})\](.*)/
+            var regex = /\[(\d{2})\:(\d{2})\.(\d{2})\](.*)/;
+            //用换行符进行切割
+            var lines = text.split('\n');
+
+            lines.forEach(function(line){
+                var results = regex.exec(line);
+
+                if(!results) return;
+                var f = results[1];
+                var m = results[2] - 0 ;
+                var content = results[4];
+                var time = (f*60)+m;
+
+                tmpObj[time] = content;
+            });
+
+            return tmpObj;
+
+        }
+
+        //生成DOM
+        function createDOM(obj){
+            var html ='';
+            for(var time in obj){
+                html += `<p time=${time}>${obj[time]}</p>`
+            }
+            $('#lrc').html(html);
+        }
+        
+        //滚动歌词
+        function scroll(obj){
+            $('audio').on('timeupdate',function(e){
+                var jumpPoint = Math.round(e.target.currentTime);
+                //没有歌词，直接返回
+                if(!obj[jumpPoint]) return;
+
+                var p = $('#lrc').find(`p[time=${jumpPoint}]`);
+                //计算lrc容器与p的差距
+                var minus= $('#lrc').offset().top - p.offset().top;
+                //移动lrc
+                $('#lrc').animate({
+                    top:minus
+                },'slow');
+                //选中颜色
+                p.addClass('gl').siblings().removeClass('gl');
+
+            });
+        }
+
+        //播放按钮被点击
+        $('.ply').on('click',function(){
+            var file = $(this).attr('file');
+            var filelrc =$(this).attr('filelrc');
+
+            $.ajax({
+                type:'get',
+                url:filelrc,
+                success:function(res){
+                    //将歌词解析成对象
+                    var lrcObj = parseObjFromText(res);
+                   //生成DOM
+                   createDOM(lrcObj);
+                   //滚动歌词
+                   scroll(lrcObj);
+                    
+                }
+            });
+            $('#audio').attr('src',file);
+        });
+    </script>
 
 {{/block}}
