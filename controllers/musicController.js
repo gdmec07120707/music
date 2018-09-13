@@ -40,7 +40,8 @@ module.exports = {
     //显示编辑页面
     showEdit:async (ctx,next)=>{
         let {id} = ctx.query;
-        let musics = musicModel.findMusicById(id);
+        let musics = await musicModel.findMusicById(id);
+        console.log("返回结果:"+musics[0]);
 
         if(musics.length===0){
             ctx.throw('音乐数据不存在');
@@ -81,11 +82,13 @@ module.exports = {
     doDeleteMusic:async(ctx,next)=>{
         let {id} = ctx.query;
 
-        let result = musicModel.deleteMusicById(id);
+        let result = await musicModel.deleteMusicById(id);
 
-        if(result.affectedRows ===1){
+        if(result.affectedRows === 1){
+            console.log('删除成功');
             ctx.body= {code:'001',msg:'删除成功'}
         }else{
+            console.log('删除失败');
             ctx.throw('删除失败');
         }
     }

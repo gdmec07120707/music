@@ -8,10 +8,9 @@ router.get('/music/index',musicController.showIndex)
 .get('/music/add-music',(ctx,next)=>{
     ctx.render('add');
 })
-.get('/music/edit-music',(ctx,next)=>{
-    ctx.render('edit');
-})
+.get('/music/edit-music',musicController.showEdit)
 .put('/music/update',musicController.doUpdateMusic)
+.delete('/music/del-music',musicController.doDeleteMusic)
 
 
 module.exports = router;

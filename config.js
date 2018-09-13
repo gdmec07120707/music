@@ -16,5 +16,6 @@ module.exports = {
         /^\/music\/.*$/,
         '/user/logout'
     ],
-    uploadDir:path.resolve('./public/files')
+    uploadDir:path.resolve('./public/files'),
+    staticDir:path.resolve('./public'),
 }

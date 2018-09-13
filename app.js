@@ -2,7 +2,7 @@ const Koa = require('koa');
 const render = require('koa-art-template');
 const path = require('path');
 const db = require('./db');
-const {rewriteUrlList,port,routeList,uploadDir} = require('./config');
+const {rewriteUrlList,port,routeList,uploadDir,staticDir} = require('./config');
 
 
 
@@ -26,7 +26,15 @@ app.use(async (ctx,next)=>{
     await next();
 });
 // //resolve把相对路径变成绝对路径
-app.use(require('koa-static')(path.resolve('./public')))
+app.use(require('koa-static')(staticDir,{
+    setHeaders:function(res,path,stats){
+        if(path.endsWith('.mp3')){
+            let size = stats.size;
+            res.setHeader('Accept-Ranges','bytes');
+            res.setHeader('Content-Ranges','bytes 0-'+(size-1)+'/'+size);
+        }
+    }
+}));
 
 
 //处理session

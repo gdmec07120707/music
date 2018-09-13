@@ -58,8 +58,10 @@
                                 <td>{{$value.title}}</td>
                                 <td>{{$value.singer}}</td>
                                 <td>{{$value.time}}</td>
-                                <td><a href="">编辑</a></td>
-                                <td><a class="del" href="">删除</a></td>
+                                <td><a href="/music/edit-music?id={{$value.id}}">编辑</a></td>
+                                <td><a class="del" href="javascript:void(0)"
+                                    my-href="/music/del-music?id={{$value.id}}"
+                                    >删除</a></td>
                                 <td><span style="cursor:pointer" src="" class="glyphicon glyphicon-play-circle ply"
                                     file="{{$value.file}}" filelrc="{{$value.filelrc}}"
                                     ></span></td>
@@ -157,6 +159,26 @@
                 }
             });
             $('#audio').attr('src',file);
+        });
+
+
+        //删除歌曲
+        $('.del').on('click',function(e){
+            var a = e.target;
+            var href = $(this).attr('my-href');
+            $.ajax({
+                url:href,
+                type:'delete',
+                dataType:'json',
+                success:function(res){
+                    if(res.code==='001'){
+                        var tr = a.parentNode.parentNode;
+                        tr.parentNode.removeChild(tr);
+                    }else{
+                        window.location = '/music/index'
+                    }
+                }
+            });
         });
     </script>
 
